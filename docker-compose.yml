@@ -1,7 +1,20 @@
+# added static IP 
+networks:
+  servarr:
+    name: servarr
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.40.0.0/24
+
 services:
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
+    environment:
+      PUID: "501"
+      PGID: "20"
+      TZ: Asia/Bangkok
     ports:
       - "8096:8096"
     volumes:
@@ -9,56 +22,26 @@ services:
       - "${HOME}/server/jellyfin/cache:/cache"
       - "${HOME}/server/media:/media"
     restart: unless-stopped
+    networks:
+      servarr:
+        ipv4_address: 172.40.0.2
 
   jellyseerr:
     image: ghcr.io/fallenbagel/jellyseerr:latest
     container_name: jellyseerr
-    init: true
     environment:
-      TZ: "Asia/Bangkok"
+      TZ: Asia/Bangkok
       PORT: "5055"
-      LOG_LEVEL: "info"
     ports:
       - "5055:5055"
     volumes:
       - "${HOME}/server/jellyseerr:/app/config"
-    restart: unless-stopped
     depends_on:
       - jellyfin
-
-  radarr:
-    image: lscr.io/linuxserver/radarr:latest
-    container_name: radarr
-    environment:
-      PUID: "501"
-      PGID: "20"
-      TZ: "Asia/Bangkok"
-    ports:
-      - "7878:7878"
-    volumes:
-      - "${HOME}/server/radarr:/config"
-      - "${HOME}/server/media/movies:/movies"
-      - "${HOME}/server/downloads:/downloads"
     restart: unless-stopped
-    depends_on:
-      - qbittorrent
-
-  sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
-    container_name: sonarr
-    environment:
-      PUID: "501"
-      PGID: "20"
-      TZ: "Asia/Bangkok"
-    ports:
-      - "8989:8989"
-    volumes:
-      - "${HOME}/server/sonarr:/config"
-      - "${HOME}/server/media/tv:/tv"
-      - "${HOME}/server/downloads:/downloads"
-    restart: unless-stopped
-    depends_on:
-      - qbittorrent
+    networks:
+      servarr:
+        ipv4_address: 172.40.0.3
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -66,7 +49,7 @@ services:
     environment:
       PUID: "501"
       PGID: "20"
-      TZ: "Asia/Bangkok"
+      TZ: Asia/Bangkok
       WEBUI_PORT: "8080"
     ports:
       - "8080:8080"
@@ -76,17 +59,49 @@ services:
       - "${HOME}/server/qbittorrent:/config"
       - "${HOME}/server/downloads:/downloads"
     restart: unless-stopped
+    networks:
+      servarr:
+        ipv4_address: 172.40.0.4
 
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
     environment:
+      PUID: "501"
+      PGID: "20"
       TZ: Asia/Bangkok
-      WATCHTOWER_CLEANUP: "true"
-      WATCHTOWER_POLL_INTERVAL: 86400   # once per day
+    ports:
+      - "8989:8989"
+    volumes:
+      - "${HOME}/server/sonarr:/config"
+      - "${HOME}/server/media/tv:/tv"
+      - "${HOME}/server/downloads:/downloads"
+    depends_on:
+      - qbittorrent
     restart: unless-stopped
+    networks:
+      servarr:
+        ipv4_address: 172.40.0.5
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      PUID: "501"
+      PGID: "20"
+      TZ: Asia/Bangkok
+    ports:
+      - "7878:7878"
+    volumes:
+      - "${HOME}/server/radarr:/config"
+      - "${HOME}/server/media/movies:/movies"
+      - "${HOME}/server/downloads:/downloads"
+    depends_on:
+      - qbittorrent
+    restart: unless-stopped
+    networks:
+      servarr:
+        ipv4_address: 172.40.0.6
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -94,20 +109,25 @@ services:
     environment:
       PUID: "501"
       PGID: "20"
-      TZ: "Asia/Bangkok"
+      TZ: Asia/Bangkok
     ports:
       - "9696:9696"
     volumes:
       - "${HOME}/server/prowlarr:/config"
     restart: unless-stopped
+    networks:
+      servarr:
+        ipv4_address: 172.40.0.7
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
     environment:
-      LOG_LEVEL: info
       TZ: Asia/Bangkok
+      LOG_LEVEL: info
     ports:
       - "8191:8191"
     restart: unless-stopped
-
+    networks:
+      servarr:
+        ipv4_address: 172.40.0.8
