@@ -131,3 +131,21 @@ services:
     networks:
       servarr:
         ipv4_address: 172.40.0.8
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      PUID: "501"
+      PGID: "20"
+      TZ: Asia/Bangkok
+    ports:
+      - "6767:6767"
+    volumes:
+      - "${HOME}/server/bazarr:/config"
+      - "${HOME}/server/media/tv:/tv"
+      - "${HOME}/server/media/movies:/movies"
+    restart: unless-stopped
+    networks:
+      servarr:
+        ipv4_address: 172.40.0.9
